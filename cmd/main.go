@@ -60,6 +60,9 @@ func main() {
 	q := queue.Queue{}
 	q.InQueue = make(chan fs.FsEvent, queue.Capacity)
 
-	go fs.WatchFsEvents(path, q.InQueue)
+	err := fs.WatchFsEvents(path, q.InQueue)
+	if err != nil {
+		panic(err)
+	}
 	q.Manager()
 }

@@ -13,15 +13,14 @@ type FsEvent struct {
 	Operation string
 }
 
-// WatchFsEvents watches fileystem events
-func WatchFsEvents(path string, queue chan FsEvent) {
-
-	fd, _ := createWatcher(path)
-	// if err != nil {
-	// 	return err
-	// }
-	readFsEvents(path, queue, fd)
-	//return nil
+// WatchFsEvents creates the watcher and reads fileystem events from it
+func WatchFsEvents(path string, queue chan FsEvent) error {
+	fd, err := createWatcher(path)
+	if err != nil {
+		return err
+	}
+	go readFsEvents(path, queue, fd)
+	return nil
 }
 
 func createWatcher(path string) (int, error) {
@@ -70,11 +69,7 @@ func readFsEvents(path string, queue chan FsEvent, fd int) {
 			if mask&unix.IN_CLOSE_WRITE == unix.IN_CLOSE_WRITE {
 				op = "close_write"
 			}
-			if mask&unix.IN_CREATE == unix.IN_CREATE {
-				op = "create"
-			}
 
-			//fmt.Printf("inotify: %s event for %s\n", op, name)
 			evt := FsEvent{Filename: name, Operation: op}
 			queue <- evt
 
